@@ -1,15 +1,22 @@
 package term
 
 import (
-	"bytes"
 	"fmt"
-	"image"
+	"image/color"
 	_ "image/png" // needed for loading default font
+	"log"
 
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/inconsolata"
+
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/text"
+	"golang.org/x/image/font/gofont/gomono"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
+/*
 var (
 	font          *Font
 	update        func()
@@ -20,40 +27,207 @@ var (
 	scale         float64
 	title         string
 	buffer        []Cell
+	bg            []color.Color
 	Debug         bool
-)
+)*/
 
-//from: https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-func nextPowerOf2(v int) int {
-	v--
-	v |= v >> 1
-	v |= v >> 2
-	v |= v >> 4
-	v |= v >> 8
-	v |= v >> 16
-	v++
-	return v
+/***** NEW API *****/
+//see https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
+//https://github.com/pkg/term
+/*
+tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	mplusNormalFont = truetype.NewFace(tt, &truetype.Options{
+		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	mplusBigFont = truetype.NewFace(tt, &truetype.Options{
+		Size:    48,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+*/
+
+//golang.org/x/image/font/gofont/gomono
+
+type term struct {
+	width, height int
+	scale         int
+	font          font.Face //todo: one font per layer
+	bitmapFont    bool      //or monospace  + size if TTF and w+h if bmp
+
+	fullscreen bool
+	title      string
 }
 
-func Size() (int, int) { return width, height }
+var (
+	f2, f3, f4 font.Face
+	runeBlk    *ebiten.Image
+)
+
+var _term term
+
+func Size(width, height int) func(*term) error {
+	return func(t *term) error {
+		t.width = width
+		t.height = height
+		return nil
+	}
+}
+
+func Scale(scale int) func(*term) error {
+	return func(t *term) error {
+		t.scale = scale
+		return nil
+	}
+}
+
+func Font(font font.Face) func(*term) error {
+	return func(t *term) error {
+		t.font = font
+		return nil
+	}
+}
+
+func Fullscreen() func(*term) error {
+	return func(t *term) error {
+		t.fullscreen = true
+		return nil
+	}
+}
+
+func Title(title string) func(*term) error {
+	return func(t *term) error {
+		t.title = title
+		return nil
+	}
+}
+
+func Dump() {
+	fmt.Printf("%v,%v\n", _term.width, _term.height)
+}
+
+//or use option struct
+
+func Open(options ...func(*term) error) error {
+	t := &_term
+	for _, option := range options {
+		option(t)
+
+	}
+	if t.width == 0 {
+		t.width = 80
+	}
+	if t.height == 0 {
+		t.height = 25
+	}
+	if t.scale == 0 {
+		t.scale = 1
+	}
+	if t.font == nil {
+		t.font = inconsolata.Regular8x16
+	}
+	f2 = inconsolata.Bold8x16
+
+	tt, err := truetype.Parse(gomono.TTF)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	f3 = truetype.NewFace(tt, &truetype.Options{
+		Size:    12,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+
+	tt, err = truetype.Parse(goregular.TTF)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	f4 = truetype.NewFace(tt, &truetype.Options{
+		Size:    12,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	//todo: handle error
+	runeBlk, _ = ebiten.NewImage(8, 16, ebiten.FilterNearest)
+
+	runeBlk.Fill(color.White)
+
+	return nil
+}
+
+func Close() {
+
+}
+
+func Refresh() {
+
+}
+
+func __update(s *ebiten.Image) error {
+	/*screen = s
+	update()*/
+	//screen.DrawImage(backbuffer, nil)
+
+	op := &ebiten.DrawImageOptions{}
+	op.ColorM.Scale(0, 0, 0, 1)
+	op.ColorM.Translate(.2, .2, .8, 1.0)
+	for y := 0; y < 10; y++ {
+		//op.GeoM..Scale(0, 0)
+		for x := 0; x < 40; x++ {
+			s.DrawImage(runeBlk, op)
+			op.GeoM.Translate(16, 0)
+		}
+		op.GeoM.Translate(-40*16, 32)
+	}
+
+	text.Draw(s, "Hello World! @ #", _term.font, 16, 16, color.White)
+	text.Draw(s, "Hello World! @ #", f2, 16, 48, color.White)
+	text.Draw(s, "Hello World! @ #", f3, 16, 48+32, color.White)
+	text.Draw(s, "Hello World! @ #", f4, 16, 48+64, color.White)
+
+	/*if Debug {
+		w, h := font.Size()
+		ebitenutil.DebugPrint(s, fmt.Sprintf("%vx%v %0.2f", width*w, height*h, ebiten.CurrentTPS()))
+	}*/
+	return nil
+}
+
+func Run(upd func()) error {
+	//update = upd
+	//w, h := font.Size()
+	return ebiten.Run(__update, _term.width*8, _term.height*16, float64(_term.scale), _term.title)
+}
+
+/***** OLD API *****/
+//func Size() (int, int) { return width, height }
 
 //func Font() *Font      { return font }
-
+/*
 func Init(w, h int, s float64, t string) (err error) {
 	width = w
 	height = h
 	buffer = make([]Cell, width*height)
+	bg = make([]image.Color, width*height)
 	title = t
 	scale = s
 	font, err = NewFont(bytes.NewReader(Font16x16SbASCII), 16, 16)
 	if err == nil {
-		runeBlk, err = ebiten.NewImage(nextPowerOf2(font.width), nextPowerOf2(font.height), ebiten.FilterNearest)
+		runeBlk, err = ebiten.NewImage(ints.RoundUpPowerOf2(font.width), ints.RoundUpPowerOf2(font.height), ebiten.FilterNearest)
 	}
 	if err == nil {
 		err = runeBlk.Fill(White)
 	}
 	w, h = font.Size()
-	w, h = nextPowerOf2(width*w), nextPowerOf2(height*h)
+	w, h = ints.RoundUpPowerOf2(width*w), ints.RoundUpPowerOf2(height*h)
 	if err == nil {
 		backbuffer, err = ebiten.NewImage(w, h, ebiten.FilterNearest)
 	}
@@ -122,6 +296,8 @@ func SetCell(x, y int, c Cell) {
 	rect := image.Rect(xs, ys, xs+fw, ys+fh)
 	backbuffer.DrawImage(font.Image().SubImage(rect).(*ebiten.Image), op)
 }
+
+//todo: methode At plutot que CellAt
 
 func CellAt(x, y int) Cell {
 	return buffer[y*width+x]
@@ -247,4 +423,4 @@ func Axis() (x int, y int) {
 		x++
 	}
 	return
-}
+}*/

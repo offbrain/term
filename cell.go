@@ -1,10 +1,13 @@
 package term
 
+import (
+	"image"
+	"image/color"
+)
+
 type Cell struct {
-	R    rune
-	Fg   Color
-	Bg   Color
-	Data interface{}
+	R rune
+	C color.Color
 }
 
-var EmptyCell = Cell{R: ' ', Fg: White, Bg: Black, Data: nil}
+var EmptyCell = Cell{R: ' ', C: image.White}

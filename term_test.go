@@ -2,8 +2,6 @@ package term_test
 
 import (
 	"log"
-	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hajimehoshi/ebiten"
@@ -26,15 +24,18 @@ func update() {
 	if ebiten.IsDrawingSkipped() {
 		return
 	}
-
-	if term.Keyp(ebiten.KeyR) {
-		bg := term.NewColorFromInt8(uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255)), 255)
-		fg := term.NewColorFromInt8(uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255)), 255)
-		term.SetCell(rand.Intn(width), rand.Intn(height), term.Cell{R: rune(rand.Intn(255)), Fg: fg, Bg: bg})
-	}
-
+	/*
+		if term.Keyp(ebiten.KeyR) {
+			bg := term.NewColorFromInt8(uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255)), 255)
+			fg := term.NewColorFromInt8(uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255)), 255)
+			term.SetCell(rand.Intn(width), rand.Intn(height), term.Cell{R: rune(rand.Intn(255)), Fg: fg, Bg: bg})
+		}
+	*/
+}
+func TestTerm(t *testing.T) {
 }
 
+/*
 type testData struct {
 	v int
 }
@@ -177,18 +178,25 @@ func TestTermScroll(t *testing.T) {
 		t.Errorf("Cell not found after Scroll()")
 	}
 }
-
+*/
 func TestMain(m *testing.M) {
-	if err := term.Init(width, height, 1, "test"); err != nil {
-		log.Fatal(err)
-	}
-	term.Debug = true
-
-	ret := m.Run()
-
+	term.Open()
+	term.Dump()
 	if err := term.Run(update); err != nil {
 		log.Fatal(err)
 	}
+	term.Close()
+	/*
+		if err := term.Init(width, height, 1, "test"); err != nil {
+			log.Fatal(err)
+		}
+		term.Debug = true
 
-	os.Exit(ret)
+		ret := m.Run()
+
+		if err := term.Run(update); err != nil {
+			log.Fatal(err)
+		}
+
+		os.Exit(ret)*/
 }
