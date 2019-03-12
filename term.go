@@ -55,14 +55,18 @@ tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
 
 //golang.org/x/image/font/gofont/gomono
 
+//type TColor color.Color
+
+//var White = TColor(color.NRGBA{255, 255, 255, 255})
+
 type term struct {
 	width, height int
 	scale         int
 	font          font.Face //todo: one font per layer
 	bitmapFont    bool      //or monospace  + size if TTF and w+h if bmp
-
-	fullscreen bool
-	title      string
+	color         Color     //todo: remove, its just for test
+	fullscreen    bool
+	title         string
 }
 
 var (
@@ -85,6 +89,13 @@ func Size(width, height int) func(*term) error {
 func Scale(scale int) func(*term) error {
 	return func(t *term) error {
 		t.scale = scale
+		return nil
+	}
+}
+
+func Colo(color Color) func(*term) error {
+	return func(t *term) error {
+		t.color = color
 		return nil
 	}
 }
@@ -112,6 +123,7 @@ func Title(title string) func(*term) error {
 
 func Dump() {
 	fmt.Printf("%v,%v\n", _term.width, _term.height)
+	fmt.Printf("Color:%v\n", _term.color)
 }
 
 //or use option struct
@@ -219,7 +231,7 @@ func __update(s *ebiten.Image) error {
 		op.GeoM.Translate(-40*float64(rw+rw), float64(rh+rh))
 	}
 
-	text.Draw(s, "Hello World! @ # 1", _term.font, 16, 16, color.White)
+	text.Draw(s, "Hello World! @ # 1", _term.font, 16, 16, White)
 	text.Draw(s, "Hello World! @ # 2", f2, 16, 48, color.White)
 	text.Draw(s, "Hello World! @ # 3", f3, 16, 48+32, color.White)
 	text.Draw(s, "Hello World! @ # 4", f4, 16, 48+64, color.White)

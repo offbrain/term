@@ -1,13 +1,6 @@
 package term_test
 
-import (
-	"encoding/binary"
-	ic "image/color"
-	"testing"
-
-	"github.com/offbrain/term"
-)
-
+/*
 func TestColorFromInt8(t *testing.T) {
 	rf, gf, bf, af := 0.25, 0.50, 0.75, 1.0
 	ri, gi, bi, ai := uint8(rf*0xff), uint8(gf*0xff), uint8(bf*0xff), uint8(af*0xff)
@@ -65,4 +58,4 @@ func TestColorFRGBA(t *testing.T) {
 	if r != 0.1 || g != 0.2 || b != 0.3 || a != 0.4 {
 		t.Errorf("FRGBA should return the stored values : %#0.1f, %#0.1f, %#0.1f, %#0.1f", r, g, b, a)
 	}
-}
+}*/

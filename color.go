@@ -2,15 +2,69 @@ package term
 
 import (
 	"encoding/binary"
-	ic "image/color"
+	"image/color"
+
+	"github.com/offbrain/math/clamp"
 )
 
+var (
+	White = ColorFromHex(0xFFFFFFFF)
+	Black = ColorFromHex(0x000000FF)
+)
+
+type Color color.Color
+
+func ColorFromHex(nrgba uint32) Color {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, nrgba)
+	return NRGBA{uint8(b[0]), uint8(b[1]), uint8(b[2]), uint8(b[3])}
+}
+
+type NRGBA color.NRGBA
+
+func (c NRGBA) RGBA() (r, g, b, a uint32) {
+	return color.NRGBA(c).RGBA()
+}
+
+func (c NRGBA) FNRGBA() (r, g, b, a float64) {
+	r = clamp.Float64(float64(c.R)/255.0, 0, 1)
+	g = clamp.Float64(float64(c.G)/255.0, 0, 1)
+	b = clamp.Float64(float64(c.B)/255.0, 0, 1)
+	a = clamp.Float64(float64(c.A)/255.0, 0, 1)
+	return
+}
+
+//todo document and implement test
+
+/*{
+	r = uint32(c.R)
+	r |= r << 8
+	r *= uint32(c.A)
+	r /= 0xff
+	g = uint32(c.G)
+	g |= g << 8
+	g *= uint32(c.A)
+	g /= 0xff
+	b = uint32(c.B)
+	b |= b << 8
+	b *= uint32(c.A)
+	b /= 0xff
+	a = uint32(c.A)
+	a |= a << 8
+	return
+}*/
+
+/*
+type NRGBAHex struct {
+	RGBA uint32
+}*/
+/*
 type Color struct {
 	r, g, b, a float64
 }
 
 var (
-	White       = Color{1, 1, 1, 1}
+	//White       = Color{1, 1, 1, 1}
 	Black       = Color{0, 0, 0, 1}
 	Transparent = Color{0, 0, 0, 0}
 )
@@ -72,3 +126,4 @@ func (c Color) FRGBA() (r, g, b, a float64) {
 func (c Color) Equal(o Color) bool {
 	return c.r == o.r && c.g == o.g && c.b == o.b && c.a == o.a
 }
+*/
