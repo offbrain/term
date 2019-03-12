@@ -66,8 +66,10 @@ type term struct {
 }
 
 var (
-	f2, f3, f4 font.Face
-	runeBlk    *ebiten.Image
+	f2, f3, f4, f5, f6 font.Face
+	runeBlk            *ebiten.Image
+	rw                 = 16
+	rh                 = 32
 )
 
 var _term term
@@ -114,6 +116,9 @@ func Dump() {
 
 //or use option struct
 
+//chromeos terminal fonts :
+//"DejaVu Sans Mono", "Noto Sans Mono", "Everson Mono", FreeMono, Menlo, Terminal, monospace
+//size 15 and use noto
 func Open(options ...func(*term) error) error {
 	t := &_term
 	for _, option := range options {
@@ -141,23 +146,48 @@ func Open(options ...func(*term) error) error {
 
 	const dpi = 72
 	f3 = truetype.NewFace(tt, &truetype.Options{
-		Size:    12,
+		Size:    14,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
+	w, _ := f3.GlyphAdvance('@')
+	h := f3.Metrics().Height
+	fmt.Printf("%v,%v 3\n", w, h)
+	f4 = truetype.NewFace(tt, &truetype.Options{
+		Size:    16,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	w, _ = f4.GlyphAdvance('@')
+	h = f4.Metrics().Height
+	fmt.Printf("%v,%v 4\n", w, h)
+
+	f5 = truetype.NewFace(tt, &truetype.Options{
+		Size:    25,
+		DPI:     dpi,
+		Hinting: font.HintingVertical,
+		//SubPixelsX: 1,
+		//SubPixelsY: 1,
+	})
+	w, _ = f5.GlyphAdvance('@')
+	h = f5.Metrics().Height
+	fmt.Printf("%v,%v 5\n", w, h)
 
 	tt, err = truetype.Parse(goregular.TTF)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	f4 = truetype.NewFace(tt, &truetype.Options{
-		Size:    12,
+	f6 = truetype.NewFace(tt, &truetype.Options{
+		Size:    14,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
+	w, _ = f6.GlyphAdvance('@')
+	h = f6.Metrics().Height
+	fmt.Printf("%v,%v 6\n", w, h)
 	//todo: handle error
-	runeBlk, _ = ebiten.NewImage(8, 16, ebiten.FilterNearest)
+	runeBlk, _ = ebiten.NewImage(rw, rh, ebiten.FilterNearest)
 
 	runeBlk.Fill(color.White)
 
@@ -184,15 +214,17 @@ func __update(s *ebiten.Image) error {
 		//op.GeoM..Scale(0, 0)
 		for x := 0; x < 40; x++ {
 			s.DrawImage(runeBlk, op)
-			op.GeoM.Translate(16, 0)
+			op.GeoM.Translate(float64(rw+rw), 0)
 		}
-		op.GeoM.Translate(-40*16, 32)
+		op.GeoM.Translate(-40*float64(rw+rw), float64(rh+rh))
 	}
 
-	text.Draw(s, "Hello World! @ #", _term.font, 16, 16, color.White)
-	text.Draw(s, "Hello World! @ #", f2, 16, 48, color.White)
-	text.Draw(s, "Hello World! @ #", f3, 16, 48+32, color.White)
-	text.Draw(s, "Hello World! @ #", f4, 16, 48+64, color.White)
+	text.Draw(s, "Hello World! @ # 1", _term.font, 16, 16, color.White)
+	text.Draw(s, "Hello World! @ # 2", f2, 16, 48, color.White)
+	text.Draw(s, "Hello World! @ # 3", f3, 16, 48+32, color.White)
+	text.Draw(s, "Hello World! @ # 4", f4, 16, 48+64, color.White)
+	text.Draw(s, "Hello World! @ # 5", f5, 16, 48+64+32, color.White)
+	text.Draw(s, "Hello World! @ # 6", f6, 16, 48+128, color.White)
 
 	/*if Debug {
 		w, h := font.Size()
