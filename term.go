@@ -11,6 +11,7 @@ import (
 	"log"
 
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/font/inconsolata"
 
 	"github.com/golang/freetype/truetype"
@@ -62,6 +63,10 @@ tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
 //type TColor color.Color
 
 //var White = TColor(color.NRGBA{255, 255, 255, 255})
+
+//todo: If not monotype. Size with @ and draw char by char
+//Basicfont = bitmap, monpspace can be ttf if width . = width @
+//Size point a la place width height (à voir)
 
 type term struct {
 	width, height int
@@ -132,6 +137,43 @@ func Dump() {
 
 //or use option struct
 
+//si color, utilisée en float , stocker en flaot en interne pour éviter reconversion à chaque fois
+
+// a font could be a basicFont.Face(fixed size (always monotype)),
+// or a truetype.Font (automatically create the face of desired size)
+//   in this case, it could be monotype
+// or an image
+// any char could be replaced by and image
+// voir https://bitbucket.org/cfyzium/bearlibterminal
+// each layer can have it's unique font
+
+func checkFont(f font.Face, text string) {
+	text += ": "
+	if _, ok := f.(*basicfont.Face); ok {
+		text += "basicfont "
+	}
+	a, _ := f.GlyphAdvance('@')
+	b, _ := f.GlyphAdvance('.')
+	if a == b {
+		text += "monospace"
+	} else {
+		text += "proportional"
+	}
+	fmt.Println(text)
+}
+
+func checkTTFFont(f *truetype.Font, text string) {
+	text += ": "
+	a := f.HMetric(1, f.Index('@')).AdvanceWidth
+	b := f.HMetric(1, f.Index('.')).AdvanceWidth
+	if a == b {
+		text += "monospace"
+	} else {
+		text += "proportional"
+	}
+	fmt.Println(text)
+}
+
 //chromeos terminal fonts :
 //"DejaVu Sans Mono", "Noto Sans Mono", "Everson Mono", FreeMono, Menlo, Terminal, monospace
 //size 15 and use noto
@@ -154,11 +196,14 @@ func Open(options ...func(*term) error) error {
 		t.font = inconsolata.Regular8x16
 	}
 	f2 = inconsolata.Bold8x16
+	checkFont(f2, "inconsolata.Bold8x16")
 
 	tt, err := truetype.Parse(gomono.TTF)
 	if err != nil {
 		log.Fatal(err)
 	}
+	checkTTFFont(tt, "gomono.TTF")
+	//checkFont(tt, "gomono") doesn't compile beacause tt is a Font, not a Face
 
 	const dpi = 72
 	f3 = truetype.NewFace(tt, &truetype.Options{
@@ -166,6 +211,7 @@ func Open(options ...func(*term) error) error {
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
+	checkFont(f3, "gomono")
 	w, _ := f3.GlyphAdvance('@')
 	h := f3.Metrics().Height
 	fmt.Printf("%v,%v 3\n", w, h)
@@ -193,12 +239,14 @@ func Open(options ...func(*term) error) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+	checkTTFFont(tt, "goregular.TTF")
 
 	f6 = truetype.NewFace(tt, &truetype.Options{
-		Size:    14,
+		Size:    15,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
+	checkFont(f6, "goregular")
 	w, _ = f6.GlyphAdvance('@')
 	h = f6.Metrics().Height
 	fmt.Printf("%v,%v 6\n", w, h)
@@ -206,6 +254,10 @@ func Open(options ...func(*term) error) error {
 	runeBlk, _ = ebiten.NewImage(rw, rh, ebiten.FilterNearest)
 
 	runeBlk.Fill(color.White)
+
+	fmt.Printf("DeviceScaleFactor: %v\n", ebiten.DeviceScaleFactor())
+	sw, sh := ebiten.ScreenSizeInFullscreen()
+	fmt.Printf("%v,%v\n", sw, sh) //1680x1050
 
 	return nil
 }
