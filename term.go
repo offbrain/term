@@ -1,3 +1,7 @@
+//This is free and unencumbered software released into the public domain.
+
+//Package term implement an advanced true color terminal
+//The terminal has multiple layers and can have a buffer larger than the displayed size
 package term
 
 import (

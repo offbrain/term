@@ -1,3 +1,5 @@
+//This is free and unencumbered software released into the public domain.
+
 package term
 
 import (
@@ -7,25 +9,32 @@ import (
 	"github.com/offbrain/math/clamp"
 )
 
+//Predefined colors
 var (
 	White = ColorFromHex(0xFFFFFFFF)
 	Black = ColorFromHex(0x000000FF)
 )
 
+// Color can convert itself to alpha-premultiplied 16-bits per channel RGBA.
+// The conversion may be lossy.
 type Color color.Color
 
-func ColorFromHex(nrgba uint32) Color {
-	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, nrgba)
-	return NRGBA{uint8(b[0]), uint8(b[1]), uint8(b[2]), uint8(b[3])}
-}
-
+// NRGBA represents a non-alpha-premultiplied 32-bit color
 type NRGBA color.NRGBA
 
+// RGBA returns the alpha-premultiplied red, green, blue and alpha values
+// for the color. Each value ranges within [0, 0xffff], but is represented
+// by a uint32 so that multiplying by a blend factor up to 0xffff will not
+// overflow.
+//
+// An alpha-premultiplied color component c has been scaled by alpha (a),
+// so has valid values 0 <= c <= a.
 func (c NRGBA) RGBA() (r, g, b, a uint32) {
 	return color.NRGBA(c).RGBA()
 }
 
+// FNRGBA returns the non-alpha-premultiplied red, green, blue and alpha values
+// for the color as float64. Each value ranges within [0.0, 1.0].
 func (c NRGBA) FNRGBA() (r, g, b, a float64) {
 	r = clamp.Float64(float64(c.R)/255.0, 0, 1)
 	g = clamp.Float64(float64(c.G)/255.0, 0, 1)
@@ -34,96 +43,9 @@ func (c NRGBA) FNRGBA() (r, g, b, a float64) {
 	return
 }
 
-//todo document and implement test
-
-/*{
-	r = uint32(c.R)
-	r |= r << 8
-	r *= uint32(c.A)
-	r /= 0xff
-	g = uint32(c.G)
-	g |= g << 8
-	g *= uint32(c.A)
-	g /= 0xff
-	b = uint32(c.B)
-	b |= b << 8
-	b *= uint32(c.A)
-	b /= 0xff
-	a = uint32(c.A)
-	a |= a << 8
-	return
-}*/
-
-/*
-type NRGBAHex struct {
-	RGBA uint32
-}*/
-/*
-type Color struct {
-	r, g, b, a float64
-}
-
-var (
-	//White       = Color{1, 1, 1, 1}
-	Black       = Color{0, 0, 0, 1}
-	Transparent = Color{0, 0, 0, 0}
-)
-
-func NewColor(r, g, b, a float64) Color {
-	return Color{r, g, b, a}
-}
-
-// stored value can be slightly different due to float conversion
-func NewColorFromInt8(r, g, b, a uint8) Color {
-	rf := float64(r) / 0xff
-	gf := float64(g) / 0xff
-	bf := float64(b) / 0xff
-	af := float64(a) / 0xff
-	return Color{rf, gf, bf, af}
-}
-
-// stored value can be slightly different due to float conversion
-func NewColorFromInt32(r, g, b, a uint32) Color {
-	return NewColorFromInt8(uint8(r), uint8(g), uint8(b), uint8(a))
-}
-
-// stored value can be slightly different due to float conversion
-func NewColorFromHex(c uint32) Color {
+//ColorFromHex returns the NRGBA color created with the nrgba hexadecimal value
+func ColorFromHex(nrgba uint32) Color {
 	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, c)
-	return NewColorFromInt8(uint8(b[0]), uint8(b[1]), uint8(b[2]), uint8(b[3]))
+	binary.BigEndian.PutUint32(b, nrgba)
+	return NRGBA{uint8(b[0]), uint8(b[1]), uint8(b[2]), uint8(b[3])}
 }
-
-// stored value can be slightly different due to float conversion
-func NewColorFromColor(c ic.Color) Color {
-	r, g, b, a := c.RGBA()
-	return NewColorFromInt8(uint8(r), uint8(g), uint8(b), uint8(a))
-}
-
-func (c Color) RGBA() (r, g, b, a uint32) {
-	aa := uint32(c.a * 0xff)
-	r = uint32(c.r * 0xff)
-	r |= r << 8
-	r *= aa
-	r /= 0xff
-	g = uint32(c.g * 0xff)
-	g |= g << 8
-	g *= aa
-	g /= 0xff
-	b = uint32(c.b * 0xff)
-	b |= b << 8
-	b *= aa
-	b /= 0xff
-	a = aa
-	a |= a << 8
-	return
-}
-
-func (c Color) FRGBA() (r, g, b, a float64) {
-	return c.r, c.g, c.b, c.a
-}
-
-func (c Color) Equal(o Color) bool {
-	return c.r == o.r && c.g == o.g && c.b == o.b && c.a == o.a
-}
-*/
