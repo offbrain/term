@@ -181,7 +181,11 @@ func TestTermScroll(t *testing.T) {
 }
 */
 func TestMain(m *testing.M) {
-	term.Open(term.Size(80, 15), term.Scale(1), term.Colo(term.NewColorHex(0x00010203)))
+	//term.Open(term.Size(80, 15), term.Scale(1), term.Colo(term.NewColorHex(0x00010203)))
+	term.Open(term.Options{
+		Title: "Test",
+		Size:  term.Size{80, 40},
+	})
 	term.Dump()
 
 	ret := m.Run()

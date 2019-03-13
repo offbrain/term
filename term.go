@@ -69,6 +69,7 @@ tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
 //Size point a la place width height (à voir)
 
 type term struct {
+	//todo: remove duplicates
 	width, height int
 	scale         int
 	font          font.Face //todo: one font per layer
@@ -76,6 +77,15 @@ type term struct {
 	color         Color     //todo: remove, its just for test
 	fullscreen    bool
 	title         string
+	opt           Options
+	layers        []Layer
+}
+
+type Options struct {
+	Size       Size
+	Scale      int
+	Fullscreen bool
+	Title      string
 }
 
 var (
@@ -87,14 +97,15 @@ var (
 
 var _term term
 
+/*
 func Size(width, height int) func(*term) error {
 	return func(t *term) error {
 		t.width = width
 		t.height = height
 		return nil
 	}
-}
-
+}*/
+/*
 func Scale(scale int) func(*term) error {
 	return func(t *term) error {
 		t.scale = scale
@@ -128,7 +139,7 @@ func Title(title string) func(*term) error {
 		t.title = title
 		return nil
 	}
-}
+}*/
 
 func Dump() {
 	fmt.Printf("%v,%v\n", _term.width, _term.height)
@@ -177,12 +188,13 @@ func checkTTFFont(f *truetype.Font, text string) {
 //chromeos terminal fonts :
 //"DejaVu Sans Mono", "Noto Sans Mono", "Everson Mono", FreeMono, Menlo, Terminal, monospace
 //size 15 and use noto
-func Open(options ...func(*term) error) error {
+func Open( /*options ...func(*term) error*/ o Options) error {
 	t := &_term
-	for _, option := range options {
+	/*for _, option := range options {
 		option(t)
 
-	}
+	}*/
+	_term.layers = append(_term.layers, Layer{ZP})
 	if t.width == 0 {
 		t.width = 80
 	}
