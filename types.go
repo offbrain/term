@@ -2,9 +2,14 @@ package term
 
 import "image"
 
-//Size is a pair of width(W) and height(H)
-type Size struct {
+//Dimension is a pair of width(W) and height(H)
+type Dimension struct {
 	W, H int
+}
+
+//Dim is shorthand for Dimension{w, h}.
+func Dim(w, h int) Dimension {
+	return Dimension{w, h}
 }
 
 //A Point is an X, Y coordinate pair. The axes increase right and down.

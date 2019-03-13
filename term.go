@@ -67,6 +67,7 @@ tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
 //todo: If not monotype. Size with @ and draw char by char
 //Basicfont = bitmap, monpspace can be ttf if width . = width @
 //Size point a la place width height (à voir)
+//todo: voir si garde dimension ou size
 
 type term struct {
 	//todo: remove duplicates
@@ -82,7 +83,7 @@ type term struct {
 }
 
 type Options struct {
-	Size       Size
+	Size       Dimension
 	Scale      int
 	Fullscreen bool
 	Title      string
