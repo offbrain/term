@@ -1,11 +1,10 @@
 package term_test
 
 import (
-	"log"
+	"os"
 	"testing"
 
 	"github.com/hajimehoshi/ebiten"
-	"github.com/offbrain/term"
 )
 
 var (
@@ -180,12 +179,18 @@ func TestTermScroll(t *testing.T) {
 }
 */
 func TestMain(m *testing.M) {
-	term.Open(term.Size(80, 15), term.Scale(1), term.Colo(term.ColorFromHex(0x00010203)))
+	/*term.Open(term.Size(80, 15), term.Scale(1), term.Colo(term.ColorFromHex(0x00010203)))
 	term.Dump()
-	if err := term.Run(update); err != nil {
-		log.Fatal(err)
-	}
-	term.Close()
+	*/
+	ret := m.Run()
+	/*
+		if err := term.Run(update); err != nil {
+			log.Fatal(err)
+		}
+		term.Close()
+	*/
+	os.Exit(ret)
+
 	/*
 		if err := term.Init(width, height, 1, "test"); err != nil {
 			log.Fatal(err)
