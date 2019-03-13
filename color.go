@@ -46,7 +46,7 @@ func NewColor(r, g, b, a uint8) Color {
 	return Color{R: r, G: g, B: b, A: a}
 }
 
-//NewColorHex returns a new color created with the non-alpha-premultiplied nrgba value
+//NewColorHex returns a new color created with the non-alpha-premultiplied nrgba value.
 //The nrgba value is not requided to be passed as an hexadecimal value but it's more convenient.
 func NewColorHex(nrgba uint32) Color {
 	b := make([]byte, 4)
