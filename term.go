@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image/color"
 	_ "image/png" // needed for loading default font
+	"io/ioutil"
 	"log"
 
 	"golang.org/x/image/font"
@@ -90,10 +91,10 @@ type Options struct {
 }
 
 var (
-	f2, f3, f4, f5, f6 font.Face
-	runeBlk            *ebiten.Image
-	rw                 = 16
-	rh                 = 32
+	f2, f3, f4, f5, f6, f7, f8 font.Face
+	runeBlk                    *ebiten.Image
+	rw                         = 16
+	rh                         = 32
 )
 
 var _term term
@@ -263,6 +264,39 @@ func Open( /*options ...func(*term) error*/ o Options) error {
 	w, _ = f6.GlyphAdvance('@')
 	h = f6.Metrics().Height
 	fmt.Printf("%v,%v 6\n", w, h)
+
+	file, err := ioutil.ReadFile("PxPlus_IBM_MDA.ttf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	tt, err = truetype.Parse(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	checkTTFFont(tt, "PxPlus_IBM_MDA.ttf")
+	a := tt.HMetric(1, tt.Index('@')).AdvanceWidth
+	b := tt.VMetric(1, tt.Index('@')).AdvanceHeight
+	fmt.Printf("PxPlus %v,%v\n", a, b)
+
+	f7 = truetype.NewFace(tt, &truetype.Options{
+		Size:    14,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	checkFont(f7, "PxPlus_IBM_MDA")
+	w, _ = f7.GlyphAdvance('@')
+	h = f7.Metrics().Height
+	fmt.Printf("%v,%v 7\n", w, h)
+	f8 = truetype.NewFace(tt, &truetype.Options{
+		Size:    28,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	checkFont(f8, "PxPlus_IBM_MDA 24")
+	w, _ = f8.GlyphAdvance('@')
+	h = f8.Metrics().Height
+	fmt.Printf("%v,%v 8\n", w, h)
+
 	//todo: handle error
 	runeBlk, _ = ebiten.NewImage(rw, rh, ebiten.FilterNearest)
 
@@ -306,7 +340,8 @@ func __update(s *ebiten.Image) error {
 	text.Draw(s, "Hello World! @ # 4", f4, 16, 48+64, color.White)
 	text.Draw(s, "Hello World! @ # 5", f5, 16, 48+64+32, color.White)
 	text.Draw(s, "Hello World! @ # 6", f6, 16, 48+128, color.White)
-
+	text.Draw(s, "Hello World! @ # 7", f7, 16, 48+128+32, color.White)
+	text.Draw(s, "Hello World! @ # 8", f8, 16, 48+128+64, color.White)
 	/*if Debug {
 		w, h := font.Size()
 		ebitenutil.DebugPrint(s, fmt.Sprintf("%vx%v %0.2f", width*w, height*h, ebiten.CurrentTPS()))
