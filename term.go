@@ -6,6 +6,7 @@ package term
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	_ "image/png" // needed for loading default font
 	"io/ioutil"
@@ -175,6 +176,30 @@ func checkFont(f font.Face, text string) {
 	fmt.Println(text)
 }
 
+//return a sharpened copy of a basicfont.Face
+func SharpenBasicFont(f *basicfont.Face) *basicfont.Face {
+	face := *f
+	if fa, ok := f.Mask.(*image.Alpha); ok {
+		l := len(fa.Pix)
+		pix := make([]byte, l)
+		copy(pix, fa.Pix)
+		a := &image.Alpha{
+			Stride: fa.Stride,
+			Rect:   fa.Rect,
+			Pix:    pix,
+		}
+		face.Mask = a
+		for i := 0; i < l; i++ {
+			if a.Pix[i] > 120 {
+				a.Pix[i] = 0xff
+			} else {
+				a.Pix[i] = 0
+			}
+		}
+	}
+	return &face
+}
+
 func checkTTFFont(f *truetype.Font, text string) {
 	text += ": "
 	a := f.HMetric(1, f.Index('@')).AdvanceWidth
@@ -207,9 +232,10 @@ func Open( /*options ...func(*term) error*/ o Options) error {
 		t.scale = 1
 	}
 	if t.font == nil {
-		t.font = inconsolata.Regular8x16
+		//SharpenFont(inconsolata.Regular8x16)
+		t.font = SharpenBasicFont(inconsolata.Regular8x16)
 	}
-	f2 = inconsolata.Bold8x16
+	f2 = inconsolata.Regular8x16 //Bold8x16
 	checkFont(f2, "inconsolata.Bold8x16")
 
 	tt, err := truetype.Parse(gomono.TTF)
@@ -230,9 +256,11 @@ func Open( /*options ...func(*term) error*/ o Options) error {
 	h := f3.Metrics().Height
 	fmt.Printf("%v,%v 3\n", w, h)
 	f4 = truetype.NewFace(tt, &truetype.Options{
-		Size:    16,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
+		Size:       14, //16,
+		DPI:        dpi,
+		Hinting:    font.HintingFull,
+		SubPixelsX: 0,
+		SubPixelsY: 0,
 	})
 	w, _ = f4.GlyphAdvance('@')
 	h = f4.Metrics().Height
@@ -328,7 +356,7 @@ func __update(s *ebiten.Image) error {
 	for y := 0; y < 10; y++ {
 		//op.GeoM..Scale(0, 0)
 		for x := 0; x < 40; x++ {
-			s.DrawImage(runeBlk, op)
+			//s.DrawImage(runeBlk, op)
 			op.GeoM.Translate(float64(rw+rw), 0)
 		}
 		op.GeoM.Translate(-40*float64(rw+rw), float64(rh+rh))
