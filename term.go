@@ -256,7 +256,7 @@ func Open( /*options ...func(*term) error*/ o Options) error {
 	h := f3.Metrics().Height
 	fmt.Printf("%v,%v 3\n", w, h)
 	f4 = truetype.NewFace(tt, &truetype.Options{
-		Size:       14, //16,
+		Size:       16,
 		DPI:        dpi,
 		Hinting:    font.HintingFull,
 		SubPixelsX: 0,
@@ -307,7 +307,7 @@ func Open( /*options ...func(*term) error*/ o Options) error {
 	fmt.Printf("PxPlus %v,%v\n", a, b)
 
 	f7 = truetype.NewFace(tt, &truetype.Options{
-		Size:    14,
+		Size:    16,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
