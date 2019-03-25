@@ -3,6 +3,7 @@ package term_test
 import (
 	"log"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/hajimehoshi/ebiten"
@@ -14,6 +15,7 @@ var (
 	maxUpdates = 60 * 10*/
 	width  = 40
 	height = 25
+	t      *term.Term
 )
 
 func update() {
@@ -32,8 +34,6 @@ func update() {
 			term.SetCell(rand.Intn(width), rand.Intn(height), term.Cell{R: rune(rand.Intn(255)), Fg: fg, Bg: bg})
 		}
 	*/
-}
-func TestTerm(t *testing.T) {
 }
 
 /*
@@ -180,34 +180,58 @@ func TestTermScroll(t *testing.T) {
 	}
 }
 */
-func TestMain(m *testing.M) {
-	//term.Open(term.Size(80, 15), term.Scale(1), term.Colo(term.NewColorHex(0x00010203)))
-	term.Open(term.Options{
-		Title: "Test",
-		Size:  term.Dim(80, 40),
-	})
-	term.Dump()
+
+//func TestMain(m *testing.M) {
+
+//term.Open(term.Size(80, 15), term.Scale(1), term.Colo(term.NewColorHex(0x00010203)))
+/*t, _ := term.Open(
+term.Title("Test Title"),
+term.Fullscreen)
+*/
+//	ret := m.Run()
+/*
+   if err := t.Run(update); err != nil {
+   	log.Fatal(err)
+   }
+   t.Close()
+*/
+//	os.Exit(ret)
+
+/*
+	if err := term.Init(width, height, 1, "test"); err != nil {
+		log.Fatal(err)
+	}
+	term.Debug = true
 
 	ret := m.Run()
 
 	if err := term.Run(update); err != nil {
 		log.Fatal(err)
 	}
-	term.Close()
+
+	os.Exit(ret)*/
+//}
+
+func init() {
+	runtime.LockOSThread()
+}
+
+func TestMain(m *testing.M) {
+	t, _ := term.Open(
+		term.Title("Test Title"),
+		term.Fullscreen)
+
+	if err := t.Run(update); err != nil {
+		log.Fatal(err)
+	}
+
+	ret := m.Run()
+
+	t.Close()
 
 	os.Exit(ret)
+}
 
-	/*
-		if err := term.Init(width, height, 1, "test"); err != nil {
-			log.Fatal(err)
-		}
-		term.Debug = true
+func TestTerm(tt *testing.T) {
 
-		ret := m.Run()
-
-		if err := term.Run(update); err != nil {
-			log.Fatal(err)
-		}
-
-		os.Exit(ret)*/
 }

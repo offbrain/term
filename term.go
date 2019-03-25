@@ -71,7 +71,7 @@ tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
 //Size point a la place width height (à voir)
 //todo: voir si garde dimension ou size
 
-type term struct {
+type Term struct {
 	//todo: remove duplicates
 	width, height int
 	scale         int
@@ -80,16 +80,17 @@ type term struct {
 	color         Color     //todo: remove, its just for test
 	fullscreen    bool
 	title         string
-	opt           Options
-	layers        []Layer
+	/*opt           Options*/
+	layers         []Layer
+	updateCallback func()
 }
 
-type Options struct {
+/*type Options struct {
 	Size       Dimension
 	Scale      int
 	Fullscreen bool
 	Title      string
-}
+}*/
 
 var (
 	f2, f3, f4, f5, f6, f7, f8 font.Face
@@ -98,7 +99,7 @@ var (
 	rh                         = 32
 )
 
-var _term term
+type Option func(*Term) error
 
 /*
 func Size(width, height int) func(*term) error {
@@ -129,25 +130,24 @@ func Font(font font.Face) func(*term) error {
 		return nil
 	}
 }
-
-func Fullscreen() func(*term) error {
-	return func(t *term) error {
-		t.fullscreen = true
-		return nil
-	}
+*/
+func Fullscreen(t *Term) error {
+	t.fullscreen = true
+	return nil
 }
 
-func Title(title string) func(*term) error {
-	return func(t *term) error {
+func Title(title string) func(*Term) error {
+	return func(t *Term) error {
 		t.title = title
 		return nil
 	}
-}*/
+}
 
+/*
 func Dump() {
 	fmt.Printf("%v,%v\n", _term.width, _term.height)
 	fmt.Printf("Color:%v\n", _term.color)
-}
+}*/
 
 //or use option struct
 
@@ -215,13 +215,12 @@ func checkTTFFont(f *truetype.Font, text string) {
 //chromeos terminal fonts :
 //"DejaVu Sans Mono", "Noto Sans Mono", "Everson Mono", FreeMono, Menlo, Terminal, monospace
 //size 15 and use noto
-func Open( /*options ...func(*term) error*/ o Options) error {
-	t := &_term
-	/*for _, option := range options {
+func Open(options ...Option) (*Term, error) {
+	t := &Term{}
+	for _, option := range options {
 		option(t)
-
-	}*/
-	_term.layers = append(_term.layers, Layer{ZP})
+	}
+	t.layers = append(t.layers, Layer{ZP})
 	if t.width == 0 {
 		t.width = 80
 	}
@@ -334,21 +333,31 @@ func Open( /*options ...func(*term) error*/ o Options) error {
 	sw, sh := ebiten.ScreenSizeInFullscreen()
 	fmt.Printf("%v,%v\n", sw, sh) //1680x1050
 
+	return t, nil
+}
+
+func (t *Term) Close() error {
 	return nil
 }
 
-func Close() {
+func (t *Term) Refresh() {
 
 }
 
-func Refresh() {
+/*
+func (t *Term ) Read(p []byte) (n int, err error) {
 
 }
+ReadAt(p []byte, off int64) (n int, err error)
+Write(p []byte) (n int, err error)
+WriteAt(p []byte, off int64) (n int, err error)
+*/
 
-func __update(s *ebiten.Image) error {
+func (t *Term) update(s *ebiten.Image) error {
 	/*screen = s
 	update()*/
 	//screen.DrawImage(backbuffer, nil)
+	t.updateCallback()
 
 	op := &ebiten.DrawImageOptions{}
 	op.ColorM.Scale(0, 0, 0, 1)
@@ -362,7 +371,7 @@ func __update(s *ebiten.Image) error {
 		op.GeoM.Translate(-40*float64(rw+rw), float64(rh+rh))
 	}
 
-	text.Draw(s, "Hello World! @ # 1", _term.font, 16, 16, White)
+	text.Draw(s, "Hello World! @ # 1", t.font, 16, 16, White)
 	text.Draw(s, "Hello World! @ # 2", f2, 16, 48, color.White)
 	text.Draw(s, "Hello World! @ # 3", f3, 16, 48+32, color.White)
 	text.Draw(s, "Hello World! @ # 4", f4, 16, 48+64, color.White)
@@ -377,10 +386,10 @@ func __update(s *ebiten.Image) error {
 	return nil
 }
 
-func Run(upd func()) error {
-	//update = upd
+func (t *Term) Run(upd func()) error {
+	t.updateCallback = upd
 	//w, h := font.Size()
-	return ebiten.Run(__update, _term.width*8, _term.height*16, float64(_term.scale), _term.title)
+	return ebiten.Run(t.update, t.width*8, t.height*16, float64(t.scale), t.title)
 }
 
 /***** OLD API *****/
